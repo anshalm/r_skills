@@ -1,0 +1,195 @@
+---
+title: "R Skills"
+author: "Anshal Majmudar"
+date: "2026-06-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Skills Project
+
+```{r}
+# Hi! This is a large-scale version of the regex project I did with a csv file with less values. This will include 
+# querying, filters, some visualization, and a new dataset such as the iris.csv one. Thanks for the watch!
+# Regex Project
+# I. Reading in the csv_file 
+df = read.csv("username.csv")
+df
+
+# Uh oh! It looks like the csv file that I downloaded is not in proper format or column names! Lets fix that!
+# II. Fixing the csv file. We will do this through Regex and dplyr. We will have to unlist the df each time, 
+# but that's ok!
+use("stringi")
+use("dplyr")
+username = stri_extract_all_regex(unlist(df), ".+[a-z]\\d\\d") # Lets us extract all usernames!
+identifier = stri_extract_all_regex(unlist(df), "\\d\\d\\d\\d") # Let us extract all identifiers (aka numbers)!
+first_name = stri_extract_all_regex(unlist(df), "[\\;][A-Za-z].+[\\;]") # Let us extract first names!
+
+# Oh no! We see that there are still semi-colons here. No worries! We can fix with with another stringi function!
+first_name = stri_extract_all_words(first_name) # Great! We got them! 
+last_name = stri_extract_all_regex(unlist(df), "[^\\;]+[^\\;]$") # Let us extract the last names!
+
+# III. Turning into a tibble! 
+employee_data = tibble(username, identifier, first_name, last_name) # Great we got it to tibble format! 
+employee_data
+
+# But wait! It looks like when we try and show it, the outcome are all lists! : <
+# There is a solution to this. Convert it all to as.characters! 
+
+# IV. Final transforming! 
+username = as.character(username)
+identifier = as.character(identifier)
+first_name = as.character(first_name)
+last_name = as.character(last_name)
+
+# Lets turn it into tibble again and see outcome! 
+employee_data = tibble(username, identifier, first_name, last_name)
+employee_data
+
+# Yay it works! Thank you for following me till the end and the watch! : >
+```
+```{r}
+# 1. Filtering. 
+# But now, lets use dplyr for some basic filtering. 
+# Let's say we want to find the name of the employee based on the username. How would we do so? Through piping 
+# of course!
+employee_data %>%
+  filter(username == "booker12")
+
+# Result: Rachel Booker! 
+# We can do this kind of filtering for string based values even for identifier numbers! We also used the logical
+# operator == to find our employee here!
+
+# 2. Seeing the column values using $. 
+# Let's just take a look at basic filtering to find the values in one column using $. 
+employee_data$last_name 
+
+# Here we can see all the last names of the employees. Very useful feature if we wanted to find any value in any
+# dataset with $. 
+
+# 3. Renaming the column names
+# I don't like that the column name identifiers isn't shortened to id. We can change that! 
+# Method 1
+employee_data$id = employee_data$identifier
+
+# This is the most common simple method in renaming any type of column in R. We just simply change it to the name 
+# we want and equal it to the current name. 
+
+# Method 2 
+employee_data %>%
+  rename(id = identifier)
+
+# In dplyr however, in large datasets for example with many many values, : 0, we can use the rename function to
+# rename as many column names as we want. 
+
+# 4. Creating a new column with new values
+# I want to add a new column that has all the employee's hobbies. Let's make that. 
+employee_data$hobbies = c("Sport", "Singing", "Dancing", "Golf", "Coding")
+employee_data
+
+# Look! We can make a new column with c() with the same function we used to rename a column. Isn't that cool! 
+
+# 5. Extra Changes! I am being asked by my boss to move columns around, rename values, and remove a column. 
+# Moving a column around using dplyr. My boss wants it to be:
+# "username", "first_name", "last_name", "identifier", "hobbies". 
+
+# We will use dplyr's relocate to do so! 
+employee_data %>%
+  relocate(username, first_name, last_name)
+
+# I need to rename Rachel into Raqelle. Let's try and do it on a small data set. 
+employee_data$first_name[[1]] = "Raquelle"
+employee_data
+
+# Great it's now Raquelle, instead of Rachel! 
+
+# Finally, my boss wants me to remove the hobbies column. Ok, we can do that using dplyrs mutate function! 
+employee_data %>%
+  mutate(hobbies = NULL)
+
+# These are just some basic filtering and changes we can do to a dataframe. On a much larger dataset, dplyr would
+# be used more often than the basic R commands as it can perform more powerful functions to change its visual and
+# logical interface. Thank you for watching!
+
+# P.S. I have used the help("package_here") function for any help in understanding packages. You should use it too! : )
+help("dplyr")
+help("relocate")
+help("mutate")
+```
+```{r}
+# Plotting time! Now that we've completed the basic Regex project with filtering, along with changes made to columns and values, let's go ahead and plot data using plotly with a different dataset. If you've been reading along you'll notice how I mentioned working with large sets of data require more complex functions and changes, Let's take a large data set here and work on complex filtering! 
+df = as_tibble(read.csv("ramen-ratings.csv"))
+df
+
+# 1. Cleaning the dataset
+# Let's clean up the dataset a bit - it looks like Top.Ten isn't exactly showing any values. Looks like we'll have to drop the column! We'll also rename Review.. to be Review!
+df = df %>%
+  mutate(Top.Ten = NULL) %>%
+  rename(Review = Review..)
+df
+
+# 2. Working with the dataset! 
+# Ok, now that we've removed a column and changed the Review column name, we are able to work with the dataset!
+# I want to see Japan's stars for Ramen that are less than 5 stars, but greater than 3 stars! We'll have to do some complex filtering and subset of the original data to find the data we want! 
+df_japan = df %>%
+  filter(Country == "Japan")
+df_japan = df_japan %>%
+  filter(Stars < 5 & Stars > 3) # Great! We can now work with this data and see what Style is most popular. We can use the count function to see the most popular ones!
+```
+```{r}
+# Working with data 
+# 1. Finding what varieties are most popular in Japan by Stars! 
+df_japan %>%
+  slice_max(Stars, n = 1)
+
+# Wow lot of brands are popular with 4.75 stars! But, what about the lowest? 
+df_japan %>%
+  slice_min(Stars, n = 1) # Looks like this Nissin, BIG Cup Noodle Ajillo is lowest rated with 3.0 stars : <
+
+# 2. We found the min and max values of Ramen, but what about looking at what review can correspond in to what brand the person liked the most for them? 
+df_japan %>%
+  filter(Review == "2532")
+
+# Brand: Nissin 
+# Variety: Nippon Onomichi Ramen 
+# Style: Bowl
+# Country: Japan
+# Stars: 4.75
+
+# Great we know what Review #2532 liked!
+
+# 3. Selecting columns you only want to see! 
+# Let's say you wanted to remove the Variety column and just see the other columns instead. Well instead of removing them with mutate, we can use the opposite of it and select just those columns - literally "select" being the function! 
+df_japan %>%
+  dplyr::select(Review, Brand, Style, Country, Stars)
+
+# Great, now we only have the df that has those columns we want! 
+
+# Thank you for following with me all this way. Visualization of these data sets is on the way, but for now, these are the skills I've developed in R so far!!! 
+```
+```{r}
+# Plot_ly Time
+# Plotly a much more interactive version of ggplot2, is what I'll be using for visualization of the Ramen ratings by star and brand viewpoint. Let's get into it! 
+# 1. fig in plot_ly
+# Let's use fig in the variable naming for our piping and usage of building the plot! 
+fig = plot_ly(df_japan, x = df_japan$Brand, y = df_japan$Stars, type = "bar", name = "Ramen rating in Japan by Brand")
+fig
+# Wow there are so many rating stacked on top of each other - Nissin seems to be the most popular one by far! But lets say we want to see average ratings, not the stacked ratings, so how do we fix the bar plot? 
+
+# 2. Fixing the plot 
+# Step One is to go ahead and group the dataset by brand, then find the mean of ALL the ramen ratings for ALL brands individually, and finally arrange it so that the values go be descending order from highest to lowest - luckily dplyr has all that for us! 
+stars_avg = df_japan %>%
+  dplyr::group_by(Brand) %>%
+  dplyr::summarise(avg_stars = mean(as.numeric(Stars), na.rm = T)) %>%
+  dplyr::arrange(desc(avg_stars))
+
+# Step Two is to plot the new data correctly! 
+fig = plot_ly(stars_avg, x = stars_avg$avg_stars, y = stars_avg$Brand, type = "bar", name = "Averages of Ramen ratings in Japan by Brand", orientation = 'h')
+fig = fig %>%
+  layout(yaxis = list(title = 'Brands and Avg Stars'))
+fig
+```
+
