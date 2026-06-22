@@ -73,7 +73,7 @@ employee_data$last_name
 # 3. Renaming the column names
 # I don't like that the column name identifiers isn't shortened to id. We can change that! 
 # Method 1
-employee_data$id = employee_data$identifier
+# employee_data$id = employee_data$identifier
 
 # This is the most common simple method in renaming any type of column in R. We just simply change it to the name 
 # we want and equal it to the current name. 
@@ -175,6 +175,7 @@ df_japan %>%
 # Plotly a much more interactive version of ggplot2, is what I'll be using for visualization of the Ramen ratings by star and brand viewpoint. Let's get into it! 
 # 1. fig in plot_ly
 # Let's use fig in the variable naming for our piping and usage of building the plot! 
+use("plotly")
 fig = plot_ly(df_japan, x = df_japan$Brand, y = df_japan$Stars, type = "bar", name = "Ramen rating in Japan by Brand")
 fig
 # Wow there are so many rating stacked on top of each other - Nissin seems to be the most popular one by far! But lets say we want to see average ratings, not the stacked ratings, so how do we fix the bar plot? 
@@ -183,8 +184,7 @@ fig
 # Step One is to go ahead and group the dataset by brand, then find the mean of ALL the ramen ratings for ALL brands individually, and finally arrange it so that the values go be descending order from highest to lowest - luckily dplyr has all that for us! 
 stars_avg = df_japan %>%
   dplyr::group_by(Brand) %>%
-  dplyr::summarise(avg_stars = mean(as.numeric(Stars), na.rm = T)) %>%
-  dplyr::arrange(desc(avg_stars))
+  dplyr::summarise(avg_stars = mean(as.numeric(Stars), na.rm = T))
 
 # Step Two is to plot the new data correctly! 
 fig = plot_ly(stars_avg, x = stars_avg$avg_stars, y = stars_avg$Brand, type = "bar", name = "Averages of Ramen ratings in Japan by Brand", orientation = 'h')
