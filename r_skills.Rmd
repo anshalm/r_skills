@@ -181,7 +181,7 @@ fig
 # Wow there are so many rating stacked on top of each other - Nissin seems to be the most popular one by far! But lets say we want to see average ratings, not the stacked ratings, so how do we fix the bar plot? 
 
 # 2. Fixing the plot 
-# Step One is to go ahead and group the dataset by brand, then find the mean of ALL the ramen ratings for ALL brands individually, and finally arrange it so that the values go be descending order from highest to lowest - luckily dplyr has all that for us! 
+# Step One is to go ahead and group the dataset by brand, then find the mean of ALL the ramen ratings for ALL brands individually - luckily dplyr has all that for us! 
 stars_avg = df_japan %>%
   dplyr::group_by(Brand) %>%
   dplyr::summarise(avg_stars = mean(as.numeric(Stars), na.rm = T))
